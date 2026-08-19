@@ -38,12 +38,54 @@ def main(page: ft.Page):
         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
     )
 
+    # Campos do formulário de produto
+    campo_nome = ft.TextField(
+        label="Nome do produto",
+        autofocus=True,
+    )
+    campo_quantidade = ft.TextField(
+        label="Quantidade",
+        keyboard_type=ft.KeyboardType.NUMBER,
+    )
+    campo_preco = ft.TextField(
+        label="Preço unitário",
+        keyboard_type=ft.KeyboardType.NUMBER,
+        prefix="R$ ",
+    )
+
+    # Diálogo do formulário de produto
+    dialogo_produto = ft.AlertDialog(
+        modal=True,
+        title=ft.Text("Adicionar Produto"),
+        content=ft.Column(
+            controls=[
+                campo_nome,
+                campo_quantidade,
+                campo_preco,
+            ],
+            tight=True,
+            spacing=12,
+        ),
+        actions=[
+            ft.TextButton("Cancelar", on_click=lambda e: fechar_dialogo()),
+            ft.FilledButton("Adicionar", on_click=lambda e: fechar_dialogo()),
+        ],
+        actions_alignment=ft.MainAxisAlignment.END,
+    )
+
+    def abrir_dialogo():
+        page.show_dialog(dialogo_produto)
+
+    def fechar_dialogo():
+        page.pop_dialog()
+
     # Botão para adicionar produto
     botao_adicionar = ft.FilledButton(
         "Adicionar Produto",
         icon=ft.Icons.ADD,
         width=float("inf"),
         height=48,
+        on_click=lambda e: abrir_dialogo(),
     )
 
     # Estrutura principal da tela
