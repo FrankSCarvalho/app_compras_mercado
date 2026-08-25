@@ -84,6 +84,24 @@ def main(page: ft.Page):
     def formatar_moeda(valor):
         return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
+    def excluir_produto(e, produto, item_produto):
+        # Remover o produto da lista em memória
+        produtos.remove(produto)
+
+        # Remover o item visual da lista
+        lista_produtos.controls.remove(item_produto)
+
+        # Recalcular o total da compra
+        total_compra = sum(p["subtotal"] for p in produtos)
+        texto_total.value = formatar_moeda(total_compra)
+
+        # Se não houver mais produtos, mostrar a mensagem de lista vazia
+        if not produtos:
+            mensagem_vazia.visible = True
+
+        # Atualizar a página
+        page.update()
+
     def alternar_comprado(e, produto, texto_nome, texto_qtd, texto_preco, texto_subtotal):
         # Atualizar o estado do produto na lista em memória
         produto["comprado"] = e.control.value
@@ -167,6 +185,14 @@ def main(page: ft.Page):
             ),
         )
 
+        # Botão para excluir o produto
+        botao_excluir = ft.IconButton(
+            icon=ft.Icons.DELETE_OUTLINE,
+            icon_color=ft.Colors.RED,
+            tooltip="Excluir produto",
+            on_click=lambda e: excluir_produto(e, produto, item_produto),
+        )
+
         # Criar item visual do produto
         item_produto = ft.Container(
             content=ft.Column(
@@ -176,6 +202,7 @@ def main(page: ft.Page):
                             checkbox,
                             texto_nome,
                             texto_qtd,
+                            botao_excluir,
                         ],
                         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                     ),
