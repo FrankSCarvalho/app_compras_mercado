@@ -1,5 +1,7 @@
 import flet as ft
 
+import database
+
 
 def main(page: ft.Page):
     page.title = "Lista de Compras"
@@ -127,49 +129,13 @@ def main(page: ft.Page):
 
         page.update()
 
-    def adicionar_produto(e):
-        # Validação do nome
-        nome = campo_nome.value.strip()
-        if not nome:
-            mensagem_erro.value = "O nome do produto não pode estar vazio."
-            mensagem_erro.visible = True
-            page.update()
-            return
-
-        # Validação da quantidade
-        try:
-            quantidade = float(campo_quantidade.value.replace(",", "."))
-            if quantidade <= 0:
-                raise ValueError
-        except (ValueError, AttributeError):
-            mensagem_erro.value = "A quantidade deve ser um número maior que zero."
-            mensagem_erro.visible = True
-            page.update()
-            return
-
-        # Validação do preço
-        try:
-            preco = float(campo_preco.value.replace(",", "."))
-            if preco < 0:
-                raise ValueError
-        except (ValueError, AttributeError):
-            mensagem_erro.value = "O preço deve ser um número maior ou igual a zero."
-            mensagem_erro.visible = True
-            page.update()
-            return
-
-        # Calcular subtotal
-        subtotal = quantidade * preco
-
-        # Adicionar produto à lista
-        produto = {
-            "nome": nome,
-            "quantidade": quantidade,
-            "preco": preco,
-            "subtotal": subtotal,
-            "comprado": False,
-        }
-        produtos.append(produto)
+    def criar_item_produto(produto):
+        # Extrai os dados do produto (que possui a chave "preco")
+        nome = produto["nome"]
+        quantidade = produto["quantidade"]
+        preco = produto["preco"]
+        subtotal = produto["subtotal"]
+        comprado = bool(produto["comprado"])
 
         # Textos do produto (para controle visual ao marcar como comprado)
         texto_nome = ft.Text(nome, size=16, weight=ft.FontWeight.BOLD, expand=True)
@@ -179,11 +145,21 @@ def main(page: ft.Page):
 
         # Checkbox para marcar o produto como comprado
         checkbox = ft.Checkbox(
-            value=False,
+            value=comprado,
             on_change=lambda e: alternar_comprado(
                 e, produto, texto_nome, texto_qtd, texto_preco, texto_subtotal
             ),
         )
+
+        # Aplica o estilo de "comprado" quando o produto já chega marcado
+        if comprado:
+            texto_nome.style = ft.TextStyle(
+                decoration=ft.TextDecoration.LINE_THROUGH,
+                color=ft.Colors.GREY,
+            )
+            texto_qtd.color = ft.Colors.GREY
+            texto_preco.color = ft.Colors.GREY
+            texto_subtotal.color = ft.Colors.GREY
 
         # Botão para excluir o produto
         botao_excluir = ft.IconButton(
@@ -224,6 +200,85 @@ def main(page: ft.Page):
 
         # Adicionar item à lista visual
         lista_produtos.controls.append(item_produto)
+
+    def carregar_produtos():
+        # Busca os produtos já salvos no banco de dados
+        for item in database.buscar_produtos():
+            subtotal = item["quantidade"] * item["preco_unitario"]
+            produto = {
+                "id": item["id"],
+                "nome": item["nome"],
+                "quantidade": item["quantidade"],
+                "preco": item["preco_unitario"],
+                "subtotal": subtotal,
+                "comprado": bool(item["comprado"]),
+            }
+            produtos.append(produto)
+            criar_item_produto(produto)
+
+        # Ocultar a mensagem de lista vazia se houver produtos
+        mensagem_vazia.visible = not produtos
+
+        # Recalcular o total da compra
+        total_compra = sum(p["subtotal"] for p in produtos)
+        texto_total.value = formatar_moeda(total_compra)
+
+    def adicionar_produto(e):
+        # Validação do nome
+        nome = campo_nome.value.strip()
+        if not nome:
+            mensagem_erro.value = "O nome do produto não pode estar vazio."
+            mensagem_erro.visible = True
+            page.update()
+            return
+
+        # Validação da quantidade
+        try:
+            quantidade = float(campo_quantidade.value.replace(",", "."))
+            if quantidade <= 0:
+                raise ValueError
+        except (ValueError, AttributeError):
+            mensagem_erro.value = "A quantidade deve ser um número maior que zero."
+            mensagem_erro.visible = True
+            page.update()
+            return
+
+        # Validação do preço
+        try:
+            preco = float(campo_preco.value.replace(",", "."))
+            if preco < 0:
+                raise ValueError
+        except (ValueError, AttributeError):
+            mensagem_erro.value = "O preço deve ser um número maior ou igual a zero."
+            mensagem_erro.visible = True
+            page.update()
+            return
+
+        # Calcular subtotal
+        subtotal = quantidade * preco
+
+        # Salvar o produto no banco de dados e obter o id gerado
+        try:
+            produto_id = database.inserir_produto(nome, quantidade, preco)
+        except Exception as erro:
+            mensagem_erro.value = f"Não foi possível salvar o produto: {erro}"
+            mensagem_erro.visible = True
+            page.update()
+            return
+
+        # Adicionar produto à lista
+        produto = {
+            "id": produto_id,
+            "nome": nome,
+            "quantidade": quantidade,
+            "preco": preco,
+            "subtotal": subtotal,
+            "comprado": False,
+        }
+        produtos.append(produto)
+
+        # Criar e adicionar o item visual do produto
+        criar_item_produto(produto)
 
         # Calcular o total da compra (soma dos subtotais)
         total_compra = sum(p["subtotal"] for p in produtos)
@@ -298,6 +353,11 @@ def main(page: ft.Page):
             spacing=20,
         )
     )
+
+    # Inicializar o banco de dados e carregar os produtos existentes
+    database.inicializar_banco()
+    carregar_produtos()
+    page.update()
 
 
 ft.run(main)
