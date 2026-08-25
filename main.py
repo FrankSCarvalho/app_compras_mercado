@@ -49,10 +49,11 @@ def main(page: ft.Page):
     )
 
     # Área inferior com o total
+    texto_total = ft.Text("R$ 0,00", size=18, weight=ft.FontWeight.BOLD)
     total = ft.Row(
         controls=[
             ft.Text("Total:", size=18, weight=ft.FontWeight.BOLD),
-            ft.Text("R$ 0,00", size=18, weight=ft.FontWeight.BOLD),
+            texto_total,
         ],
         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
     )
@@ -156,6 +157,12 @@ def main(page: ft.Page):
 
         # Adicionar item à lista visual
         lista_produtos.controls.append(item_produto)
+
+        # Calcular o total da compra (soma dos subtotais)
+        total_compra = sum(p["subtotal"] for p in produtos)
+
+        # Atualizar o campo Total na parte inferior
+        texto_total.value = formatar_moeda(total_compra)
 
         # Ocultar mensagem de lista vazia
         mensagem_vazia.visible = False
