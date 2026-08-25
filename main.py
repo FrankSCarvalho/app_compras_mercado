@@ -84,6 +84,31 @@ def main(page: ft.Page):
     def formatar_moeda(valor):
         return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
+    def alternar_comprado(e, produto, texto_nome, texto_qtd, texto_preco, texto_subtotal):
+        # Atualizar o estado do produto na lista em memória
+        produto["comprado"] = e.control.value
+
+        if e.control.value:
+            # Produto comprado: riscar o nome e atenuar os dados
+            texto_nome.style = ft.TextStyle(
+                decoration=ft.TextDecoration.LINE_THROUGH,
+                color=ft.Colors.GREY,
+            )
+            texto_qtd.color = ft.Colors.GREY
+            texto_preco.color = ft.Colors.GREY
+            texto_subtotal.color = ft.Colors.GREY
+        else:
+            # Produto desmarcado: voltar ao estado normal
+            texto_nome.style = ft.TextStyle(
+                decoration=ft.TextDecoration.NONE,
+                color=ft.Colors.BLACK,
+            )
+            texto_qtd.color = ft.Colors.BLACK
+            texto_preco.color = ft.Colors.GREY
+            texto_subtotal.color = ft.Colors.BLACK
+
+        page.update()
+
     def adicionar_produto(e):
         # Validação do nome
         nome = campo_nome.value.strip()
@@ -119,13 +144,27 @@ def main(page: ft.Page):
         subtotal = quantidade * preco
 
         # Adicionar produto à lista
-        produtos.append(
-            {
-                "nome": nome,
-                "quantidade": quantidade,
-                "preco": preco,
-                "subtotal": subtotal,
-            }
+        produto = {
+            "nome": nome,
+            "quantidade": quantidade,
+            "preco": preco,
+            "subtotal": subtotal,
+            "comprado": False,
+        }
+        produtos.append(produto)
+
+        # Textos do produto (para controle visual ao marcar como comprado)
+        texto_nome = ft.Text(nome, size=16, weight=ft.FontWeight.BOLD, expand=True)
+        texto_qtd = ft.Text(f"Qtd: {quantidade:g}", size=14)
+        texto_preco = ft.Text(f"Preço: {formatar_moeda(preco)}", size=14, color=ft.Colors.GREY)
+        texto_subtotal = ft.Text(f"Subtotal: {formatar_moeda(subtotal)}", size=14, weight=ft.FontWeight.BOLD)
+
+        # Checkbox para marcar o produto como comprado
+        checkbox = ft.Checkbox(
+            value=False,
+            on_change=lambda e: alternar_comprado(
+                e, produto, texto_nome, texto_qtd, texto_preco, texto_subtotal
+            ),
         )
 
         # Criar item visual do produto
@@ -134,15 +173,16 @@ def main(page: ft.Page):
                 controls=[
                     ft.Row(
                         controls=[
-                            ft.Text(nome, size=16, weight=ft.FontWeight.BOLD, expand=True),
-                            ft.Text(f"Qtd: {quantidade:g}", size=14),
+                            checkbox,
+                            texto_nome,
+                            texto_qtd,
                         ],
                         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                     ),
                     ft.Row(
                         controls=[
-                            ft.Text(f"Preço: {formatar_moeda(preco)}", size=14, color=ft.Colors.GREY),
-                            ft.Text(f"Subtotal: {formatar_moeda(subtotal)}", size=14, weight=ft.FontWeight.BOLD),
+                            texto_preco,
+                            texto_subtotal,
                         ],
                         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                     ),
