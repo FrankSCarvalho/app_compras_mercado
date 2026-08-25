@@ -105,6 +105,9 @@ def main(page: ft.Page):
         page.update()
 
     def alternar_comprado(e, produto, texto_nome, texto_qtd, texto_preco, texto_subtotal):
+        # Persistir o estado "comprado" no banco de dados usando o id do produto
+        database.atualizar_comprado(produto["id"], e.control.value)
+
         # Atualizar o estado do produto na lista em memória
         produto["comprado"] = e.control.value
 
