@@ -87,6 +87,9 @@ def main(page: ft.Page):
         return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
     def excluir_produto(e, produto, item_produto):
+        # Excluir o produto do banco de dados (SQLite) primeiro
+        database.excluir_produto(produto["id"])
+
         # Remover o produto da lista em memória
         produtos.remove(produto)
 
