@@ -87,6 +87,9 @@ def main(page: ft.Page):
         return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
     def excluir_produto(e, produto, item_produto):
+        # Fechar a caixa de confirmação
+        page.pop_dialog()
+
         # Excluir o produto do banco de dados (SQLite) primeiro
         database.excluir_produto(produto["id"])
 
@@ -106,6 +109,25 @@ def main(page: ft.Page):
 
         # Atualizar a página
         page.update()
+
+    def abrir_confirmacao_exclusao(e, produto, item_produto):
+        # Caixa de confirmação nativa do Flet antes de excluir
+        dialogo_exclusao = ft.AlertDialog(
+            modal=False,
+            title=ft.Text("Excluir produto?"),
+            content=ft.Text(f"Deseja excluir \"{produto['nome']}\" da lista?"),
+            actions=[
+                # "Cancelar" fecha a confirmação sem alterar nada
+                ft.TextButton("Cancelar", on_click=lambda e: page.pop_dialog()),
+                # "Excluir" chama a função que exclui do banco e da memória
+                ft.FilledButton(
+                    "Excluir",
+                    on_click=lambda e: excluir_produto(e, produto, item_produto),
+                ),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+        page.show_dialog(dialogo_exclusao)
 
     def alternar_comprado(e, produto, texto_nome, texto_qtd, texto_preco, texto_subtotal):
         # Persistir o estado "comprado" no banco de dados usando o id do produto
@@ -172,7 +194,7 @@ def main(page: ft.Page):
             icon=ft.Icons.DELETE_OUTLINE,
             icon_color=ft.Colors.RED,
             tooltip="Excluir produto",
-            on_click=lambda e: excluir_produto(e, produto, item_produto),
+            on_click=lambda e: abrir_confirmacao_exclusao(e, produto, item_produto),
         )
 
         # Criar item visual do produto
