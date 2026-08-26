@@ -189,6 +189,14 @@ def main(page: ft.Page):
             texto_preco.color = ft.Colors.GREY
             texto_subtotal.color = ft.Colors.GREY
 
+        # Botão para editar o produto
+        botao_editar = ft.IconButton(
+            icon=ft.Icons.EDIT_OUTLINED,
+            icon_color=ft.Colors.BLUE,
+            tooltip="Editar produto",
+            on_click=lambda e: abrir_edicao_produto(produto),
+        )
+
         # Botão para excluir o produto
         botao_excluir = ft.IconButton(
             icon=ft.Icons.DELETE_OUTLINE,
@@ -206,6 +214,7 @@ def main(page: ft.Page):
                             checkbox,
                             texto_nome,
                             texto_qtd,
+                            botao_editar,
                             botao_excluir,
                         ],
                         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
@@ -225,6 +234,9 @@ def main(page: ft.Page):
             border_radius=8,
             bgcolor=ft.Colors.WHITE,
         )
+
+        # Guardar referência ao item visual (usada na edição para recriar o card)
+        produto["_item"] = item_produto
 
         # Adicionar item à lista visual
         lista_produtos.controls.append(item_produto)
@@ -330,10 +342,17 @@ def main(page: ft.Page):
         # Atualizar a página
         page.update()
 
-    # Diálogo do formulário de produto
+    # Estado do produto em edição (None = novo produto / adição)
+    produto_em_edicao = None
+
+    # Título e botão de ação dinâmicos do formulário de produto
+    titulo_dialogo = ft.Text("Adicionar Produto")
+    botao_acao_dialogo = ft.FilledButton("Adicionar", on_click=adicionar_produto)
+
+    # Diálogo do formulário de produto (reutilizado para adicionar e editar)
     dialogo_produto = ft.AlertDialog(
         modal=True,
-        title=ft.Text("Adicionar Produto"),
+        title=titulo_dialogo,
         content=ft.Column(
             controls=[
                 campo_nome,
@@ -346,15 +365,122 @@ def main(page: ft.Page):
         ),
         actions=[
             ft.TextButton("Cancelar", on_click=lambda e: fechar_dialogo()),
-            ft.FilledButton("Adicionar", on_click=adicionar_produto),
+            botao_acao_dialogo,
         ],
         actions_alignment=ft.MainAxisAlignment.END,
     )
 
     def abrir_dialogo():
+        # Ajusta o formulário para o modo "adicionar"
+        nonlocal produto_em_edicao
+        produto_em_edicao = None
+        titulo_dialogo.value = "Adicionar Produto"
+        botao_acao_dialogo.text = "Adicionar"
+        botao_acao_dialogo.on_click = adicionar_produto
         mensagem_erro.value = ""
         mensagem_erro.visible = False
         page.show_dialog(dialogo_produto)
+
+    def abrir_edicao_produto(produto):
+        # Preenche o formulário com os dados atuais do produto
+        nonlocal produto_em_edicao
+        produto_em_edicao = produto
+        campo_nome.value = produto["nome"]
+        campo_quantidade.value = "{:g}".format(produto["quantidade"])
+        campo_preco.value = "{:g}".format(produto["preco"])
+        mensagem_erro.value = ""
+        mensagem_erro.visible = False
+        # Ajusta título e botão de ação para o modo edição
+        titulo_dialogo.value = "Editar Produto"
+        botao_acao_dialogo.text = "Salvar"
+        botao_acao_dialogo.on_click = salvar_produto
+        page.show_dialog(dialogo_produto)
+
+    def atualizar_item_visual(produto):
+        # Recria o item visual do produto na mesma posição que estava
+        item_antigo = produto.get("_item")
+        if item_antigo in lista_produtos.controls:
+            indice = lista_produtos.controls.index(item_antigo)
+            lista_produtos.controls.pop(indice)
+            criar_item_produto(produto)
+            novo_item = produto["_item"]
+            lista_produtos.controls.remove(novo_item)
+            lista_produtos.controls.insert(indice, novo_item)
+
+    def salvar_produto(e):
+        nonlocal produto_em_edicao
+        produto = produto_em_edicao
+
+        # Validação do nome (mesmas regras do cadastro)
+        nome = campo_nome.value.strip()
+        if not nome:
+            mensagem_erro.value = "O nome do produto não pode estar vazio."
+            mensagem_erro.visible = True
+            page.update()
+            return
+
+        # Validação da quantidade (mesmas regras do cadastro)
+        try:
+            quantidade = float(campo_quantidade.value.replace(",", "."))
+            if quantidade <= 0:
+                raise ValueError
+        except (ValueError, AttributeError):
+            mensagem_erro.value = "A quantidade deve ser um número maior que zero."
+            mensagem_erro.visible = True
+            page.update()
+            return
+
+        # Validação do preço (mesmas regras do cadastro)
+        try:
+            preco = float(campo_preco.value.replace(",", "."))
+            if preco < 0:
+                raise ValueError
+        except (ValueError, AttributeError):
+            mensagem_erro.value = "O preço deve ser um número maior ou igual a zero."
+            mensagem_erro.visible = True
+            page.update()
+            return
+
+        # Calcular novamente o subtotal
+        subtotal = quantidade * preco
+
+        # Atualizar o produto no banco de dados (SQLite)
+        try:
+            database.atualizar_produto(produto["id"], nome, quantidade, preco)
+        except Exception as erro:
+            mensagem_erro.value = f"Não foi possível salvar o produto: {erro}"
+            mensagem_erro.visible = True
+            page.update()
+            return
+
+        # Atualizar os dados do produto em memória (preserva "id" e "comprado")
+        produto["nome"] = nome
+        produto["quantidade"] = quantidade
+        produto["preco"] = preco
+        produto["subtotal"] = subtotal
+
+        # Atualizar o item visual correspondente
+        atualizar_item_visual(produto)
+
+        # Recalcular o total da compra
+        total_compra = sum(p["subtotal"] for p in produtos)
+        texto_total.value = formatar_moeda(total_compra)
+
+        # Reset do estado de edição
+        produto_em_edicao = None
+
+        # Limpar campos do formulário
+        campo_nome.value = ""
+        campo_quantidade.value = ""
+        campo_preco.value = ""
+        mensagem_erro.value = ""
+        mensagem_erro.visible = False
+
+        # Fechar o formulário
+        fechar_dialogo()
+
+        # Atualizar a página
+        page.update()
 
     def fechar_dialogo():
         page.pop_dialog()

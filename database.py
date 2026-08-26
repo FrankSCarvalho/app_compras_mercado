@@ -66,6 +66,23 @@ def buscar_produtos(db_path=DB_DEFAULT_PATH):
         return [dict(linha) for linha in linhas]
 
 
+def atualizar_produto(id, nome, quantidade, preco_unitario, db_path=DB_DEFAULT_PATH):
+    """Atualiza nome, quantidade e preço unitário de um produto pelo seu ``id``.
+
+    Preserva o valor atual da coluna ``comprado``.
+    """
+    with closing(_conectar(db_path)) as conn:
+        conn.execute(
+            """
+            UPDATE produtos
+            SET nome = ?, quantidade = ?, preco_unitario = ?
+            WHERE id = ?
+            """,
+            (nome, quantidade, preco_unitario, id),
+        )
+        conn.commit()
+
+
 def atualizar_comprado(id, comprado, db_path=DB_DEFAULT_PATH):
     """Atualiza o estado ``comprado`` de um produto pelo seu ``id``."""
     with closing(_conectar(db_path)) as conn:
