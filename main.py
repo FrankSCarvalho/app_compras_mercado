@@ -84,6 +84,9 @@ def main(page: ft.Page):
     )
 
     def formatar_moeda(valor):
+        # Seguro para None: exibe "—" em vez de tentar formatar
+        if valor is None:
+            return "—"
         return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
     def excluir_produto(e, produto, item_produto):
@@ -99,8 +102,10 @@ def main(page: ft.Page):
         # Remover o item visual da lista
         lista_produtos.controls.remove(item_produto)
 
-        # Recalcular o total da compra
-        total_compra = sum(p["subtotal"] for p in produtos)
+        # Recalcular o total da compra (soma somente produtos com subtotal)
+        total_compra = sum(
+            p["subtotal"] for p in produtos if p["subtotal"] is not None
+        )
         texto_total.value = formatar_moeda(total_compra)
 
         # Se não houver mais produtos, mostrar a mensagem de lista vazia
@@ -167,9 +172,20 @@ def main(page: ft.Page):
 
         # Textos do produto (para controle visual ao marcar como comprado)
         texto_nome = ft.Text(nome, size=16, weight=ft.FontWeight.BOLD, expand=True)
-        texto_qtd = ft.Text(f"Qtd: {quantidade:g}", size=14)
-        texto_preco = ft.Text(f"Preço: {formatar_moeda(preco)}", size=14, color=ft.Colors.GREY)
-        texto_subtotal = ft.Text(f"Subtotal: {formatar_moeda(subtotal)}", size=14, weight=ft.FontWeight.BOLD)
+        texto_qtd = ft.Text(
+            ("Qtd: —" if quantidade is None else f"Qtd: {quantidade:g}"),
+            size=14,
+        )
+        texto_preco = ft.Text(
+            f"Preço: {formatar_moeda(preco)}",
+            size=14,
+            color=ft.Colors.GREY,
+        )
+        texto_subtotal = ft.Text(
+            f"Subtotal: {formatar_moeda(subtotal)}",
+            size=14,
+            weight=ft.FontWeight.BOLD,
+        )
 
         # Checkbox para marcar o produto como comprado
         checkbox = ft.Checkbox(
@@ -244,7 +260,11 @@ def main(page: ft.Page):
     def carregar_produtos():
         # Busca os produtos já salvos no banco de dados
         for item in database.buscar_produtos():
-            subtotal = item["quantidade"] * item["preco_unitario"]
+            # Subtotal: calculado somente quando quantidade E preco existirem
+            if item["quantidade"] is not None and item["preco_unitario"] is not None:
+                subtotal = item["quantidade"] * item["preco_unitario"]
+            else:
+                subtotal = None
             produto = {
                 "id": item["id"],
                 "nome": item["nome"],
@@ -259,12 +279,14 @@ def main(page: ft.Page):
         # Ocultar a mensagem de lista vazia se houver produtos
         mensagem_vazia.visible = not produtos
 
-        # Recalcular o total da compra
-        total_compra = sum(p["subtotal"] for p in produtos)
+        # Recalcular o total da compra (soma somente produtos com subtotal)
+        total_compra = sum(
+            p["subtotal"] for p in produtos if p["subtotal"] is not None
+        )
         texto_total.value = formatar_moeda(total_compra)
 
     def adicionar_produto(e):
-        # Validação do nome
+        # Validação do nome (continua obrigatório)
         nome = campo_nome.value.strip()
         if not nome:
             mensagem_erro.value = "O nome do produto não pode estar vazio."
@@ -272,30 +294,41 @@ def main(page: ft.Page):
             page.update()
             return
 
-        # Validação da quantidade
-        try:
-            quantidade = float(campo_quantidade.value.replace(",", "."))
-            if quantidade <= 0:
-                raise ValueError
-        except (ValueError, AttributeError):
-            mensagem_erro.value = "A quantidade deve ser um número maior que zero."
-            mensagem_erro.visible = True
-            page.update()
-            return
+        # Quantidade é opcional: campo vazio => None
+        valor_quantidade = (campo_quantidade.value or "").strip()
+        if valor_quantidade == "":
+            quantidade = None
+        else:
+            try:
+                quantidade = float(valor_quantidade.replace(",", "."))
+                if quantidade <= 0:
+                    raise ValueError
+            except (ValueError, AttributeError):
+                mensagem_erro.value = "A quantidade deve ser um número maior que zero."
+                mensagem_erro.visible = True
+                page.update()
+                return
 
-        # Validação do preço
-        try:
-            preco = float(campo_preco.value.replace(",", "."))
-            if preco < 0:
-                raise ValueError
-        except (ValueError, AttributeError):
-            mensagem_erro.value = "O preço deve ser um número maior ou igual a zero."
-            mensagem_erro.visible = True
-            page.update()
-            return
+        # Preço unitário é opcional: campo vazio => None
+        valor_preco = (campo_preco.value or "").strip()
+        if valor_preco == "":
+            preco = None
+        else:
+            try:
+                preco = float(valor_preco.replace(",", "."))
+                if preco < 0:
+                    raise ValueError
+            except (ValueError, AttributeError):
+                mensagem_erro.value = "O preço deve ser um número maior ou igual a zero."
+                mensagem_erro.visible = True
+                page.update()
+                return
 
-        # Calcular subtotal
-        subtotal = quantidade * preco
+        # Subtotal: calculado somente quando quantidade E preço estiverem presentes
+        if quantidade is not None and preco is not None:
+            subtotal = quantidade * preco
+        else:
+            subtotal = None
 
         # Salvar o produto no banco de dados e obter o id gerado
         try:
@@ -306,7 +339,7 @@ def main(page: ft.Page):
             page.update()
             return
 
-        # Adicionar produto à lista
+        # Adicionar produto à lista (mesmo quando quantidade ou preço forem None)
         produto = {
             "id": produto_id,
             "nome": nome,
@@ -320,8 +353,10 @@ def main(page: ft.Page):
         # Criar e adicionar o item visual do produto
         criar_item_produto(produto)
 
-        # Calcular o total da compra (soma dos subtotais)
-        total_compra = sum(p["subtotal"] for p in produtos)
+        # Total geral: soma somente os produtos cujo subtotal não é None
+        total_compra = sum(
+            p["subtotal"] for p in produtos if p["subtotal"] is not None
+        )
 
         # Atualizar o campo Total na parte inferior
         texto_total.value = formatar_moeda(total_compra)
@@ -386,8 +421,15 @@ def main(page: ft.Page):
         nonlocal produto_em_edicao
         produto_em_edicao = produto
         campo_nome.value = produto["nome"]
-        campo_quantidade.value = "{:g}".format(produto["quantidade"])
-        campo_preco.value = "{:g}".format(produto["preco"])
+        # Quantidade/preço ausentes (None) iniciam o campo vazio
+        campo_quantidade.value = (
+            "" if produto["quantidade"] is None
+            else "{:g}".format(produto["quantidade"])
+        )
+        campo_preco.value = (
+            "" if produto["preco"] is None
+            else "{:g}".format(produto["preco"])
+        )
         mensagem_erro.value = ""
         mensagem_erro.visible = False
         # Ajusta título e botão de ação para o modo edição
@@ -419,30 +461,41 @@ def main(page: ft.Page):
             page.update()
             return
 
-        # Validação da quantidade (mesmas regras do cadastro)
-        try:
-            quantidade = float(campo_quantidade.value.replace(",", "."))
-            if quantidade <= 0:
-                raise ValueError
-        except (ValueError, AttributeError):
-            mensagem_erro.value = "A quantidade deve ser um número maior que zero."
-            mensagem_erro.visible = True
-            page.update()
-            return
+        # Validação da quantidade (opcional: campo vazio => None)
+        valor_quantidade = (campo_quantidade.value or "").strip()
+        if valor_quantidade == "":
+            quantidade = None
+        else:
+            try:
+                quantidade = float(valor_quantidade.replace(",", "."))
+                if quantidade <= 0:
+                    raise ValueError
+            except (ValueError, AttributeError):
+                mensagem_erro.value = "A quantidade deve ser um número maior que zero."
+                mensagem_erro.visible = True
+                page.update()
+                return
 
-        # Validação do preço (mesmas regras do cadastro)
-        try:
-            preco = float(campo_preco.value.replace(",", "."))
-            if preco < 0:
-                raise ValueError
-        except (ValueError, AttributeError):
-            mensagem_erro.value = "O preço deve ser um número maior ou igual a zero."
-            mensagem_erro.visible = True
-            page.update()
-            return
+        # Validação do preço (opcional: campo vazio => None)
+        valor_preco = (campo_preco.value or "").strip()
+        if valor_preco == "":
+            preco = None
+        else:
+            try:
+                preco = float(valor_preco.replace(",", "."))
+                if preco < 0:
+                    raise ValueError
+            except (ValueError, AttributeError):
+                mensagem_erro.value = "O preço deve ser um número maior ou igual a zero."
+                mensagem_erro.visible = True
+                page.update()
+                return
 
-        # Calcular novamente o subtotal
-        subtotal = quantidade * preco
+        # Subtotal: calculado somente quando quantidade E preço estiverem presentes
+        if quantidade is not None and preco is not None:
+            subtotal = quantidade * preco
+        else:
+            subtotal = None
 
         # Atualizar o produto no banco de dados (SQLite)
         try:
@@ -462,8 +515,10 @@ def main(page: ft.Page):
         # Atualizar o item visual correspondente
         atualizar_item_visual(produto)
 
-        # Recalcular o total da compra
-        total_compra = sum(p["subtotal"] for p in produtos)
+        # Recalcular o total da compra (soma somente produtos com subtotal)
+        total_compra = sum(
+            p["subtotal"] for p in produtos if p["subtotal"] is not None
+        )
         texto_total.value = formatar_moeda(total_compra)
 
         # Reset do estado de edição
