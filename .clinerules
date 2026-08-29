@@ -1,0 +1,28 @@
+# Memory Bank
+
+O Cline DEVE seguir esta regra em **toda nova sessão**, antes de realizar qualquer tarefa
+neste repositório.
+
+## Passo obrigatório ao iniciar uma sessão
+
+1. Leia **todos** os arquivos da pasta `memory-bank/`:
+   - `projectbrief.md`
+   - `productContext.md`
+   - `systemPatterns.md`
+   - `techContext.md`
+   - `activeContext.md`
+   - `progress.md`
+   - `banco_de_dados.md`
+2. Verifique no `progress.md`/`activeContext.md` se o contexto está atualizado.
+3. Se faltar algum arquivo, reconstrua-o com base no código atual (o código-fonte é a
+   fonte primária de verdade).
+
+## Regras de manutenção
+
+- Atualize o Memory Bank após **qualquer alteração significativa** de código,
+  arquitetura, dependências ou novas funcionalidades.
+- Não documente funcionalidades que não existem no código: diferencie
+  "implementado", "parcial" e "ideia futura".
+- Use sempre os nomes reais de arquivos, funções, classes, tabelas e colunas.
+- Registre inconsistências conhecidas entre documentação e código no `activeContext.md`.
+- Não edite `main.py`/`database.py` apenas para ajustar a documentação deste Memory Bank.
