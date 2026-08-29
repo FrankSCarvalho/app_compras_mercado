@@ -76,21 +76,31 @@ pip install -r requirements.txt
 
 ```
 app_compras_mercado/
+├── .clinerules         # regras do Cline para leitura/manutenção do Memory Bank
 ├── .gitignore          # template Git + extras (dbs e tempCodeRunnerFile.py)
 ├── README.md           # instruções de instalação/execução/mobile
 ├── database.py         # camada de persistência SQLite (funções CRUD + migração)
 ├── main.py             # aplicação Flet (UI, validações, eventos)
+├── memory-bank/        # documentação de contexto (Memory Bank)
+│   ├── activeContext.md
+│   ├── banco_de_dados.md
+│   ├── productContext.md
+│   ├── progress.md
+│   ├── projectbrief.md
+│   ├── systemPatterns.md
+│   └── techContext.md
 ├── requirements.txt    # única dependência: flet==0.86.5
 ├── test_database.py    # script de teste manual da camada database (banco temporário)
 └── tmp_full.py         # teste integrado descartável (mocka Flet via AST, valida UI)
 ```
 
+Todos os arquivos acima estão **versionados** no branch `main`/`HEAD` (incluindo
+`.clinerules` e `memory-bank/`, confirmado via `git ls-tree HEAD`).
+
 NÃO versionados (existem localmente):
 - `.venv\` — ambiente virtual.
 - `compras.db` — banco de dados local gerado em execução (ignorado por `*.db`).
 - `__pycache__\` — cache do Python.
-- `.clinerules` e `memory-bank/` — infraestrutura de documentação do Memory Bank
-  (criada pelo Cline; não versionados em `HEAD`).
 
 ## Convenções do código
 
