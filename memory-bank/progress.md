@@ -19,9 +19,9 @@
 | Migração de schema (bancos antigos NOT NULL) | ✅ | `_requer_migracao()` / `_migrar_tabela()` |
 | Mensagem de lista vazia | ✅ | `mensagem_vazia` (Stack + visibilidade) |
 | Interface toda em pt-BR / moeda R$ | ✅ | textos e `formatar_moeda()` |
-| Teste manual da camada de banco | ✅ | `test_database.py` (PASS verificado nesta análise) |
-| Teste de exibição (Qtd/Preço/Subtotal/"—") com mock Flet | ✅ (descartável) | `tmp_full.py` (AST + mock) |
-| **`flet build apk` / distribuição móvel** | 🟠 | documentado no README; **não validado** — falta estrutura `src/`, `assets/`, `pyproject.toml` |
+| Teste manual da camada de banco | ✅ | `test_database.py` (script manual; usa banco temporário e imprime "RESULTADO DO TESTE: PASS") |
+| Teste de exibição (Qtd/Preço/Subtotal/"—") com mock Flet | ✅ (descartável) | `tmp_full.py` (extrai funções de `main.py` via AST + mock) |
+| **`flet build apk` / distribuição móvel** | 🟠 (documentado, **não validado**) | procedimento presente no README, mas estrutura necessária (`src/`, `assets/`, `pyproject.toml`) **ausente** e sem evidência de execução bem-sucedida |
 | **QR Code / câmera / leitura de código de barras** | ⬜ | **não existe** nenhuma implementação no código |
 | **Exportar/limpar lista após compra** | ⬜ | não existe |
 | **Categorias / pesquisa / favoritos** | ⬜ | não existe |

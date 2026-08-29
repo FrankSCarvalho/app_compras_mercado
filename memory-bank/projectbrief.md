@@ -32,7 +32,7 @@ capacidade de:
 | Camada          | Tecnologia                                      |
 |-----------------|-------------------------------------------------|
 | UI              | Flet 0.86.5 (`flet==0.86.5` no `requirements.txt`) |
-| Linguagem       | Python (README exige 3.10+; `.venv` local usa 3.14.5) |
+| Linguagem       | Python 3.10+ (requisito do README); **3.14.5 é apenas a versão do ambiente local observado** |
 | Persistência    | SQLite via módulo padrão `sqlite3`              |
 | Testes          | Scripts manuais (`test_database.py` e `tmp_full.py`) |
 
@@ -40,7 +40,7 @@ capacidade de:
 
 Em desenvolvimento ativo. As funcionalidades de gerenciamento da lista estão
 **implementadas e funcionando** no estado atual do `main` (último commit `a2ecb62`).
-Não há release, pacote PyPI ou build de APK versionado no repositório.
+Não há release, pacote PyPI ou APK gerado/validado no projeto.
 
 ## Fonte da verdade
 

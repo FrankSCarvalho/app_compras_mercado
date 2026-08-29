@@ -1,7 +1,6 @@
 # Memory Bank
 
-O Cline DEVE seguir esta regra em **toda nova sessão**, antes de realizar qualquer tarefa
-neste repositório.
+O Cline DEVE seguir estas regras em **toda sessão** neste repositório.
 
 ## Passo obrigatório ao iniciar uma sessão
 
@@ -13,16 +12,29 @@ neste repositório.
    - `activeContext.md`
    - `progress.md`
    - `banco_de_dados.md`
-2. Verifique no `progress.md`/`activeContext.md` se o contexto está atualizado.
-3. Se faltar algum arquivo, reconstrua-o com base no código atual (o código-fonte é a
-   fonte primária de verdade).
+2. Trate o **código-fonte como fonte primária de verdade**. Se houver divergência
+   entre documentação e código, o código vence — e a divergência deve ser registrada
+   no `activeContext.md`.
+3. Verifique no `activeContext.md`/`progress.md` se o contexto está atualizado antes de
+   iniciar qualquer alteração.
 
 ## Regras de manutenção
 
 - Atualize o Memory Bank após **qualquer alteração significativa** de código,
   arquitetura, dependências ou novas funcionalidades.
-- Não documente funcionalidades que não existem no código: diferencie
-  "implementado", "parcial" e "ideia futura".
+- **Não** documente funcionalidades que não existem no código. Diferencie sempre:
+  "implementado" / "parcial" / "inexistente" / "ideia futura".
+- **Ideias futuras não são funcionalidades**: QR Code, câmera, leitura de código de
+  barras e qualquer outro recurso não implementado devem continuar classificados como
+  **não implementados** — nunca tratá-los como existentes.
 - Use sempre os nomes reais de arquivos, funções, classes, tabelas e colunas.
+- **Não** registre dados efêmeros do ambiente local como conhecimento permanente
+  (ex.: tamanho de `compras.db`, contagem de registros, produtos de teste). Mantenha
+  apenas informações estruturais.
 - Registre inconsistências conhecidas entre documentação e código no `activeContext.md`.
+- Distinga requisito oficial (ex.: Python 3.10+, Flet 0.86.5) de **ambiente observado**
+  (ex.: versão do Python instalada localmente).
+- Ferramentas/procedimentos apenas documentados (ex.: `flet build apk`) não são
+  funcionalidade validada; registre o que **não** pôde ser confirmado.
 - Não edite `main.py`/`database.py` apenas para ajustar a documentação deste Memory Bank.
+- Não crie ou modifique código como consequência de uma tarefa de documentação.

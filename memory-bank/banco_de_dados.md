@@ -4,7 +4,8 @@
 
 - **Motor**: SQLite, acessado pelo módulo padrão `sqlite3` do Python.
 - **Arquivo**: `compras.db`, na raiz do projeto (criado na primeira execução).
-  **Não versionado** (`.gitignore` ignora `*.db`).
+  **Não versionado** (`.gitignore` ignora `*.db`). O conteúdo do arquivo (registros)
+  varia conforme o uso da aplicação e **não deve ser documentado no Memory Bank**.
 - **Localização do código**: `database.py` (módulo autônomo; nenhuma dependência
   externa).
 - **Conexão**: cada função do módulo abre e fecha a própria conexão
@@ -33,10 +34,6 @@ CREATE TABLE IF NOT EXISTS produtos (
     comprado       INTEGER NOT NULL DEFAULT 0
 )
 ```
-
-Schema verificado no banco local em 2026-08-29 (PRAGMA `table_info`):
-`id INTEGER pk=1`, `nome TEXT notnull=1`, `quantidade REAL notnull=0`,
-`preco_unitario REAL notnull=0`, `comprado INTEGER notnull=1 dflt=0`.
 
 ## Relacionamentos
 
@@ -76,15 +73,6 @@ Detalhes:
 - `inserir_produto` normaliza `comprado` com `1 if comprado else 0`.
 - Todos os SQLs são **parametrizados** (`?`).
 - Não há função explícita para "limpar lista" ou "estatísticas".
-
-## Estado atual do arquivo local (não versionado)
-
-Verificado em **2026-08-29**:
-- `compras.db` existe na raiz (~16 KB), com 2 registros reais de desenvolvimento:
-  - `id=1, nome='Couve', quantidade=10.0, preco_unitario=7.99, comprado=0`
-  - `id=2, nome='Arroz', quantidade=4.0, preco_unitario=12.99, comprado=0`
-- Esses dados são apenas dados locais de teste do usuário; **não fazem parte do
-  repositório**.
 
 ## Regras de mapeamento UI ↔ banco
 

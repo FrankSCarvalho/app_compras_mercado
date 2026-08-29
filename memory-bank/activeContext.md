@@ -1,8 +1,11 @@
 # Active Context — app_compras_mercado
 
-> Atualizado em: **2026-08-29** (data desta análise; último commit do projeto: `a2ecb62`, 2026-08-26).
+> Último commit conhecido do projeto: `a2ecb62` (branch `main`, 2026-08-26).
+> Este documento descreve o estado **durável** do projeto; detalhes efêmeros da
+> execução local (registros do `compras.db`, estado do working tree) não são mantidos
+> aqui.
 
-## Estado atual (commit `a2ecb62` — branch `main`, sincronizado com `origin/main`)
+## Estado atual
 
 O aplicativo está funcional para o fluxo completo de lista de compras:
 
@@ -14,10 +17,7 @@ O aplicativo está funcional para o fluxo completo de lista de compras:
 - Migração automática de bancos antigos (colunas `quantidade`/`preco_unitario` com
   `NOT NULL` → permitindo `NULL`).
 
-Árvore de trabalho limpa (sem alterações em arquivos rastreados no momento desta
-análise).
-
-## Mudanças recentes (por ordem do histórico)
+## Mudanças relevantes (histórico)
 
 - `b19e43f` (2026-08-26) e `a2ecb62` (2026-08-26): implementação completa do CRUD —
   adição/edição/exclusão de produtos, marcação "comprado", totais, migração do banco e
@@ -40,10 +40,11 @@ análise).
    com bancos temporários (como faz `test_database.py`).
 5. **`compras.db` não é versionado**: mudanças de schema devem ser feitas por migração
    idempotente em `inicializar_banco()`; bancos locais antigos precisarão da migração.
-6. Não há estrutura `src/`, `assets/` ou `pyproject.toml` — o comando
-   `flet build apk` do README ainda **não** foi aplicado/validado no projeto.
+6. **APK não validado**: não há estrutura `src/`, `assets/` ou `pyproject.toml` — o
+   comando `flet build apk` do README é apenas procedimento **documentado**, sem
+   evidência de execução bem-sucedida (ver `techContext.md`).
 
-## Inconsistências conhecidas
+## Inconsistências conhecidas (documentação × código)
 
 1. Docstring desatualizada em `database.py` (linhas iniciais): afirma que o banco
    "ainda NÃO está conectado à aplicação (main.py)", mas `main.py` chama
@@ -51,19 +52,21 @@ análise).
    `database.inserir_produto()`, `database.atualizar_produto()`,
    `database.atualizar_comprado()` e `database.excluir_produto()`. **Código é a verdade**;
    a docstring deve ser corrigida em uma futura sessão.
-2. `tmp_full.py` é um **teste integrado descartável** (ver comentários internos) que foi
-   versionado no `main` — não afeta o app, mas é candidato a remoção/movimentação.
-3. README diz "Python 3.10 ou superior": o `.venv` local usa Python **3.14.5** —
-   ok, mas nenhum CI/teste confirma compatibilidade mínima.
-4. `campo_quantidade` e `campo_preco` usam teclado numérico (`KeyboardType.NUMBER`),
-   porém a entrada aceita vírgula decimal — experiência em teclados mobile pode ser
-   desconfortável.
+2. `tmp_full.py` é um **teste integrado descartável** (segundo cabeçalho e comentários
+   internos) que foi versionado no `main` — não afeta o app, mas é candidato a
+   remoção/movimentação.
+3. Nenhum CI/teste confirma a compatibilidade mínima (**Python 3.10+**) declarada no
+   README; só se observou execução local em Python mais novo (ver `techContext.md`).
 
-## Próximos passos lógicos (não definidos oficialmente no repositório)
+## Registro importante
 
-- Nada de roadmap explícito existe no código/README. Ideias mencionadas em conversas
-  anteriores (fono: **QR Code / escaneamento de código de barras / câmera**) **não
-  existem no código** e **não foram implementadas**. Registrar como ideias futuras
-  até decisão do usuário.
-- Correções candidatas (somente quando autorizadas): docstring de `database.py`,
-  remover/mover `tmp_full.py`, revisar teclado numérico dos campos decimais.
+- **QR Code / câmera / leitura de código de barras NÃO são funcionalidades existentes.**
+  Não há nenhuma implementação dessas features no código. Qualquer menção futura deve
+  ser tratada exclusivamente como **ideia futura/não implementada** (detalhes em
+  `progress.md`).
+
+## Para onde vão os demais temas
+
+- Dívidas técnicas e correções candidatas → `progress.md`.
+- Versões, requisitos e ambiente observado → `techContext.md`.
+- Tabela/colunas/migrações/API do banco → `banco_de_dados.md`.

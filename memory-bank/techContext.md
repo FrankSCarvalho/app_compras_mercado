@@ -2,18 +2,24 @@
 
 ## Stack e versões
 
-| Item | Versão/Valor | Onde consta |
-|------|--------------|-------------|
-| Python | **3.10+** (requisito) | `README.md` |
-| Python no `.venv` local (Windows) | **3.14.5** | verificado via `python --version` no ambiente |
-| Flet | **0.86.5** | `requirements.txt` (`flet==0.86.5`) e verificado no `.venv` |
-| SQLite | stdlib do Python (**3.50.4** drivers) | `sqlite3.sqlite_version` |
-| Banco gerado | `compras.db` (arquivo local, não versionado) | criado pelo app na raiz |
-| Módulos externos | **apenas `flet`** | `requirements.txt` |
-| Sistema | Windows (dev; Flet é cross-platform) | ambiente atual |
+| Item | Versão/Valor | Classificação | Onde consta |
+|------|--------------|---------------|-------------|
+| Python | **3.10+ (ou superior)** | ✅ Requisito oficial do projeto | `README.md` ("Python 3.10 ou superior") |
+| Python no `.venv` | **3.14.5** | 🖥️ Apenas **ambiente de desenvolvimento observado** (Windows) — **não é requisito** | verificado via `python --version` |
+| Flet | **0.86.5** | ✅ Versão fixada do projeto | `requirements.txt` (`flet==0.86.5`) |
+| SQLite | stdlib do Python | ✅ dependência de biblioteca padrão, sem versão fixada pelo projeto | driver local observado: `sqlite3.sqlite_version` 3.50.4 (informação do ambiente, não requisito) |
+| Banco gerado | `compras.db` (arquivo local, não versionado) | — | criado pelo app na raiz |
+| Módulos externos | **apenas `flet`** | ✅ | `requirements.txt` |
+| Sistema de desenvolvimento | Windows (Flet é cross-platform) | 🖥️ ambiente observado | ambiente atual |
 
-> Nota: `requirements.txt` contém somente `flet==0.86.5`. `database.py` usa apenas
-> módulos da biblioteca padrão (`sqlite3`, `contextlib`).
+> **Leitura obrigatória**:
+> - **Python 3.10+** e **Flet 0.86.5** são os requisitos oficiais declarados pelo projeto.
+> - **Python 3.14.5** é apenas a versão presente no ambiente local analisado; **não deve
+>   ser tratada como requisito oficial** nem como a versão mínima do projeto.
+> - **SQLite 3.50.4** é a versão dos drivers no ambiente local observado; o projeto usa
+>   o `sqlite3` da stdlib, sem fixar versão do SQLite.
+> - `requirements.txt` contém somente `flet==0.86.5`. `database.py` usa apenas módulos
+>   da biblioteca padrão (`sqlite3`, `contextlib`).
 
 ## Ambiente de desenvolvimento (Windows)
 
@@ -44,8 +50,9 @@ pip install -r requirements.txt
 ```
 
 - Requer app **Flet** instalado no celular (Google Play, id `com.appveyor.flet`);
-- celular e PC na mesma rede Wi-Fi; um **QR code** (recurso do Flet, **não** é uma
-  funcionalidade do app) é exibido para conectar.
+- celular e PC na mesma rede Wi-Fi; um **QR code** é exibido para conectar — este QR
+  code é um **recurso do próprio Flet** descrito no README, **não** é uma funcionalidade
+  do aplicativo `app_compras_mercado` (não há código de QR/câmera no projeto).
 
 ### Gerar APK (distribuição)
 
@@ -53,10 +60,17 @@ pip install -r requirements.txt
 .venv\Scripts\flet.exe build apk
 ```
 
-- Requer JDK 17 e Android SDK (instalados automaticamente na primeira execução);
-- exige estrutura recomendada (`src/main.py`, `assets/icon.png`, `pyproject.toml` ou
-  `requirements.txt`) — **não aprovado ainda** no projeto atual (não há `src/` nem
-  `assets/`).
+> ⚠️ **Status: procedimento DOCUMENTADO, NÃO validado.** O `README.md` registra o
+> comando `flet build apk`, mas:
+> - **não há evidência de que o processo tenha sido executado com sucesso neste projeto**;
+> - a estrutura necessária indicada pelo próprio README (`src/main.py`, `assets/icon.png`,
+>   `pyproject.toml` ou `requirements.txt`) **não existe** no repositório atual
+>   (não há pastas `src/` nem `assets/`);
+> - portanto, **a geração de APK não é uma funcionalidade de distribuição já validada** —
+>   apenas um procedimento documentado para tentativa futura.
+>
+> Requer JDK 17 e Android SDK (instalados automaticamente na primeira execução, segundo
+> o README).
 
 ## Estrutura de arquivos do repositório (HEAD)
 
@@ -75,6 +89,8 @@ NÃO versionados (existem localmente):
 - `.venv\` — ambiente virtual.
 - `compras.db` — banco de dados local gerado em execução (ignorado por `*.db`).
 - `__pycache__\` — cache do Python.
+- `.clinerules` e `memory-bank/` — infraestrutura de documentação do Memory Bank
+  (criada pelo Cline; não versionados em `HEAD`).
 
 ## Convenções do código
 
