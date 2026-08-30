@@ -5,6 +5,7 @@ import database
 
 def main(page: ft.Page):
     page.title = "Lista de Compras"
+    page.theme_mode = ft.ThemeMode.LIGHT
     page.padding = 20
     page.spacing = 20
 
